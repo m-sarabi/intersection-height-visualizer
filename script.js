@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isAnimated = false;
         heights.length = 0;
         polygonPoints.length = 0;
+        animate();
     });
 
     canvas.addEventListener('click', (event) => {
