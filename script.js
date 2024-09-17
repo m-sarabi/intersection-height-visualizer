@@ -8,20 +8,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const offset = {x: 200, y: 0};
     let isAnimated = true;
 
-    const polygonPoints = [
-        {x: 50, y: 200},
-        {x: 100, y: 290},
-        {x: 150, y: 200},
-        {x: 200, y: 250},
-        {x: 110, y: 300},
-        {x: 200, y: 350},
-        {x: 150, y: 400},
-        {x: 100, y: 310},
-        {x: 50, y: 400},
-        {x: 0, y: 350},
-        {x: 90, y: 300},
-        {x: 0, y: 250},
-    ];
+    let polygonPoints = [];
+    const urlPoints = getPointsFromURLParams();
+    console.log(urlPoints);
+
+    if (urlPoints.length > 0) {
+        polygonPoints = urlPoints;
+    } else {
+        polygonPoints = [
+            {x: 50, y: 200},
+            {x: 100, y: 290},
+            {x: 150, y: 200},
+            {x: 200, y: 250},
+            {x: 110, y: 300},
+            {x: 200, y: 350},
+            {x: 150, y: 400},
+            {x: 100, y: 310},
+            {x: 50, y: 400},
+            {x: 0, y: 350},
+            {x: 90, y: 300},
+            {x: 0, y: 250},
+        ];
+    }
 
     // draw a circle on cx, cy
     ctx.beginPath();
@@ -88,6 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const shareButton = document.getElementById('share');
+    shareButton.addEventListener('click', () => {
+        const url = generateUrlWithPoints(polygonPoints);
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Link copied to clipboard');
+        });
+    });
 });
 
 function drawPolygon(ctx, points, color, bg) {
@@ -157,7 +172,6 @@ function drawLine(ctx, x1, y1, angle, points) {
     }
 
     if (intersections.length === 0) {
-        console.log(angle);
         return null;
     }
     intersections.sort((a, b) => Math.hypot(a.x - x1, a.y - y1) - Math.hypot(b.x - x1, b.y - y1));
@@ -190,4 +204,22 @@ function drawCircle(ctx, x, y, radius, color) {
     ctx.arc(x, y, radius, 0, 2 * Math.PI);
     ctx.fill();
     ctx.closePath();
+}
+
+function getPointsFromURLParams() {
+    // parameters are like this: points=x1:y1,x2:y2,...
+    const urlParams = new URLSearchParams(window.location.search);
+    const points = urlParams.get('points');
+    if (points) {
+        return points.split(',').map(p => {
+            const [x, y] = p.split(':');
+            return {x: +x, y: +y};
+        });
+    }
+    return [];
+}
+
+function generateUrlWithPoints(points) {
+    const params = `?points=${points.map(p => `${p.x}:${p.y}`).join(',')}`;
+    return window.location.protocol + '//' + window.location.host + window.location.pathname + params;
 }
